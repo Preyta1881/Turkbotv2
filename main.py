@@ -1,24 +1,13 @@
 import os
-from threading import Thread
-from flask import Flask
 from dotenv import load_dotenv
-from turkbot import bot  # turkbot.py içinden bot nesnesini alıyoruz
+from keep_alive import keep_alive
+from turkbot import bot  # Bot nesnesi turkbot.py içindeyse bu doğru
 
-load_dotenv()  # .env dosyasından değişkenleri yükle
+# Ortam değişkenlerini yükle (.env dosyası yerelde çalışırken işe yarar)
+load_dotenv()
 
-# Sahte web sunucusu
-app = Flask(__name__)
+# Flask web sunucusunu başlat (Render için gereklidir)
+keep_alive()
 
-@app.route('/')
-def index():
-    return "Bot şu anda çalışıyor."
-
-def run_web():
-    port = int(os.environ.get("PORT", 8080))  # Render’ın istediği PORT değişkeni
-    app.run(host="0.0.0.0", port=port)
-
-# Web server'ı ayrı thread'de başlat
-Thread(target=run_web).start()
-
-# Discord botu başlat
+# Discord botunu başlat
 bot.run(os.getenv("BOT_TOKEN"))
