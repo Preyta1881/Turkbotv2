@@ -2,7 +2,7 @@ import os
 from threading import Thread
 from flask import Flask
 from dotenv import load_dotenv
-from turkbotbot import bot  # turkbot.py içinden bot nesnesini alıyoruz
+from turkbot import bot  # turkbot.py içinden bot nesnesini alıyoruz
 
 load_dotenv()  # .env dosyasından değişkenleri yükle
 
