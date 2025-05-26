@@ -105,7 +105,7 @@ async def sunucu(ctx):
             map_display = f"{emoji} {map_name.strip()}" if emoji else map_name.strip()
 
             embed = discord.Embed(
-                title="🎮 Battlefield 1 Sunucu Durumu",
+                title="🎮 TURK Battlefield 1 Sunucu Durumu",
                 color=color
             )
             embed.add_field(name="🗺️ Harita", value=map_display, inline=False)
