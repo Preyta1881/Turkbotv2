@@ -46,10 +46,7 @@ async def on_ready():
 async def report(ctx, *, sebep="Sebep belirtilmedi."):
     embed = discord.Embed(
         title="📢 Şikayet Bildirimi",
-        description=(
-            f"**Şikayetçi:** {ctx.author.mention}\n"
-            f"**Sebep:** {sebep}"
-        ),
+        description=f"**Şikayetçi:** {ctx.author.mention}\n**Sebep:** {sebep}",
         color=discord.Color.red()
     )
     await ctx.send(
@@ -76,9 +73,7 @@ async def klan(ctx):
 
 @bot.command()
 async def sunucu(ctx):
-    TARGET_BOT_ID = 1346398667912777738
     guild = ctx.guild
-
     target = guild.get_member(TARGET_BOT_ID)
     if not target:
         return await ctx.send("❌ Hedef bot bu sunucuda bulunamadı veya bilgisine erişilemiyor.")
@@ -87,11 +82,6 @@ async def sunucu(ctx):
     if not activities:
         return await ctx.send("ℹ️ Hedef botun herhangi bir aktivitesi yok.")
 
-    # Debug: aktiviteleri listele
-    activity_names = [getattr(act, "name", str(act)) for act in activities]
-    print(f"DEBUG - Aktiviteler: {activity_names}")
-
-    # Sıra opsiyonel
     pattern = re.compile(r"(\d+)\s*/\s*(\d+)(?:\s*\[(\d+)\])?\s*-\s*(.+)")
 
     for act in activities:
@@ -105,12 +95,11 @@ async def sunucu(ctx):
             current, maximum = int(current), int(maximum)
             percent_full = current / maximum if maximum else 0
 
-            if percent_full >= 0.9:
-                color = discord.Color.red()
-            elif percent_full >= 0.5:
-                color = discord.Color.gold()
-            else:
-                color = discord.Color.green()
+            color = (
+                discord.Color.red() if percent_full >= 0.9 else
+                discord.Color.gold() if percent_full >= 0.5 else
+                discord.Color.green()
+            )
 
             emoji = MAP_EMOJIS.get(map_name.strip(), "")
             map_display = f"{emoji} {map_name.strip()}" if emoji else map_name.strip()
@@ -197,5 +186,5 @@ async def bf1(ctx):
 async def link(ctx):
     await ctx.send("🔗 Sunucumuza katılmak için: https://discord.gg/TURKBF1")
 
-# BOTU ÇALIŞTIR
-bot.run(BOT_TOKEN)
+# BOT NESNESİNİ EXPORT ET (main.py'de import için)
+__all__ = ["bot"]
