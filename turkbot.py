@@ -113,6 +113,7 @@ async def oyunculistesi(ctx):
                 current_map = hedef.get("currentMap", "Bilinmiyor")
                 mode = hedef.get("mode", "Bilinmiyor")
                 region = hedef.get("region", "Bilinmiyor")
+                queue_count = hedef.get("inQue", 0)
                 server_url = hedef.get("url", None)
 
                 embed = discord.Embed(
@@ -125,6 +126,9 @@ async def oyunculistesi(ctx):
                 embed.add_field(name="Bölge", value=region, inline=True)
                 embed.add_field(name="Oyuncu Sayısı", value=f"{player_amount} / {max_players}", inline=True)
 
+                if queue_count and int(queue_count) > 0:
+                    embed.add_field(name="Sıradaki Oyuncu Sayısı", value=str(queue_count), inline=True)
+
                 if server_url:
                     embed.set_thumbnail(url=server_url)
 
@@ -136,6 +140,8 @@ async def oyunculistesi(ctx):
     except Exception as e:
         print(f"[HATA] {e}")
         await ctx.send("Bir hata oluştu.")
+
+
 
 @bot.command()
 async def vip(ctx):
