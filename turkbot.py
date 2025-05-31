@@ -3,6 +3,8 @@ import re
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import aiohttp
+from urllib.parse import quote
 
 # .env dosyasını yükle
 load_dotenv()
@@ -71,51 +73,69 @@ async def klan(ctx):
     )
     await ctx.send(embed=embed)
 
-@bot.command()
-async def sunucu(ctx):
-    guild = ctx.guild
-    target = guild.get_member(TARGET_BOT_ID)
-    if not target:
-        return await ctx.send("❌ Hedef bot bu sunucuda bulunamadı veya bilgisine erişilemiyor.")
+# --- Burada eski !sunucu komutu kaldırıldı ---
 
-    activities = target.activities
-    if not activities:
-        return await ctx.send("ℹ️ Hedef botun herhangi bir aktivitesi yok.")
+@bot.command(name="sunucu")
+async def oyunculistesi(ctx):
+    hedef_sunucu_adi = "[TURK] FatherOfTheTurks JOIN: discord.gg/TURKBF1"
+    encoded_query = quote("[TURK]")
+    url = f"https://api.gametools.network/bf1/servers/?name={encoded_query}"
 
-    pattern = re.compile(r"(\d+)\s*/\s*(\d+)(?:\s*\[(\d+)\])?\s*-\s*(.+)")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    await ctx.send(f"API hatası: HTTP {resp.status}")
+                    return
 
-    for act in activities:
-        name = getattr(act, "name", None)
-        if not name:
-            continue
+                json_data = await resp.json()
 
-        match = pattern.match(name)
-        if match:
-            current, maximum, slot, map_name = match.groups()
-            current, maximum = int(current), int(maximum)
-            percent_full = current / maximum if maximum else 0
+                if isinstance(json_data, dict) and "error" in json_data:
+                    await ctx.send(f"API Hatası: {json_data['error']}")
+                    return
 
-            color = (
-                discord.Color.red() if percent_full >= 0.9 else
-                discord.Color.gold() if percent_full >= 0.5 else
-                discord.Color.green()
-            )
+                if "servers" not in json_data:
+                    await ctx.send("Sunucu listesi verisi alınamadı.")
+                    return
 
-            emoji = MAP_EMOJIS.get(map_name.strip(), "")
-            map_display = f"{emoji} {map_name.strip()}" if emoji else map_name.strip()
+                sunucular = json_data["servers"]
+                hedef = next(
+                    (srv for srv in sunucular if hedef_sunucu_adi in srv.get("prefix", "")),
+                    None
+                )
 
-            embed = discord.Embed(
-                title="🎮 TURK Battlefield 1 Sunucu Durumu",
-                color=color
-            )
-            embed.add_field(name="🗺️ Harita", value=map_display, inline=False)
-            embed.add_field(name="👥 Oyuncu Sayısı", value=f"{current} / {maximum}", inline=True)
-            if slot:
-                embed.add_field(name="🧩 Sıra", value=f"[{slot}]", inline=True)
-            embed.set_footer(text="Sunucu durumu gerçek zamanlıdır.")
-            return await ctx.send(embed=embed)
+                if not hedef:
+                    await ctx.send("Sunucu bulunamadı. Adı tam olarak eşleşmedi.")
+                    return
 
-    await ctx.send("⚠️ Aktivite içinde uygun bilgi bulunamadı.")
+                player_amount = hedef.get("playerAmount", "Bilinmiyor")
+                max_players = hedef.get("maxPlayers", "Bilinmiyor")
+                current_map = hedef.get("currentMap", "Bilinmiyor")
+                mode = hedef.get("mode", "Bilinmiyor")
+                region = hedef.get("region", "Bilinmiyor")
+                server_url = hedef.get("url", None)
+
+                embed = discord.Embed(
+                    title=f"🎮 {hedef_sunucu_adi} - Sunucu Bilgisi",
+                    color=discord.Color.blue()
+                )
+
+                embed.add_field(name="Harita", value=current_map, inline=True)
+                embed.add_field(name="Mod", value=mode, inline=True)
+                embed.add_field(name="Bölge", value=region, inline=True)
+                embed.add_field(name="Oyuncu Sayısı", value=f"{player_amount} / {max_players}", inline=True)
+
+                if server_url:
+                    embed.set_thumbnail(url=server_url)
+
+                embed.set_footer(text="Sunucunun anlık durumudur.")
+                embed.timestamp = discord.utils.utcnow()
+
+                await ctx.send(embed=embed)
+
+    except Exception as e:
+        print(f"[HATA] {e}")
+        await ctx.send("Bir hata oluştu.")
 
 @bot.command()
 async def vip(ctx):
@@ -141,7 +161,7 @@ async def yardim(ctx):
     embed.add_field(name="!kurallar", value="Sunucu kurallarını gösterir", inline=False)
     embed.add_field(name="!bf1", value="Battlefield 1 sunucu kurallarını gösterir", inline=False)
     embed.add_field(name="!klan", value="Klan katılım koşullarını listeler", inline=False)
-    embed.add_field(name="!sunucu", value="Battlefield 1 sunucusunun durumu ve oyuncu sayısını gösterir", inline=False)
+    embed.add_field(name="!sunucu", value="Battlefield 1 sunucusunun anlık durumu ve oyuncu sayısını gösterir", inline=False)
     embed.add_field(name="!link", value="Sunucu davet bağlantısını gönderir", inline=False)
     await ctx.send(embed=embed)
 
@@ -188,3 +208,6 @@ async def link(ctx):
 
 # BOT NESNESİNİ EXPORT ET (main.py'de import için)
 __all__ = ["bot"]
+
+if __name__ == "__main__":
+    bot.run(BOT_TOKEN)
