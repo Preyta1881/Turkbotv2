@@ -1,5 +1,4 @@
 import os
-import re
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -12,20 +11,7 @@ load_dotenv()
 # Ortam değişkenlerini al
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ROLE_ID = int(os.getenv("ADMIN_ROLE_ID"))
-TARGET_BOT_ID = int(os.getenv("TARGET_BOT_ID"))
 VIP_CHANNEL_ID = int(os.getenv("VIP_CHANNEL_ID"))
-
-# Harita emojileri
-MAP_EMOJIS = {
-    "Sinai Desert": "🏜️",
-    "Nivelle Nights": "🌃",
-    "Amiens": "🏘️",
-    "Verdun Heights": "🔥",
-    "Ballroom Blitz": "🎭",
-    "Achi Baba": "☪️",
-    "Suez ": "🌴 ",
-    # Yeni haritalar ekleyebilirsin
-}
 
 # İzinler
 intents = discord.Intents.default()
@@ -42,8 +28,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"✅ Bot giriş yaptı: {bot.user}")
 
-# -- KOMUTLAR --
-
+# Komut: !report
 @bot.command()
 async def report(ctx, *, sebep="Sebep belirtilmedi."):
     embed = discord.Embed(
@@ -57,6 +42,7 @@ async def report(ctx, *, sebep="Sebep belirtilmedi."):
         allowed_mentions=discord.AllowedMentions(roles=[discord.Object(id=ADMIN_ROLE_ID)])
     )
 
+# Komut: !klan
 @bot.command()
 async def klan(ctx):
     embed = discord.Embed(
@@ -73,8 +59,7 @@ async def klan(ctx):
     )
     await ctx.send(embed=embed)
 
-# --- Burada eski !sunucu komutu kaldırıldı ---
-
+# Komut: !sunucu
 @bot.command(name="sunucu")
 async def oyunculistesi(ctx):
     hedef_sunucu_adi = "[TURK] FatherOfTheTurks JOIN: discord.gg/TURKBF1"
@@ -141,8 +126,7 @@ async def oyunculistesi(ctx):
         print(f"[HATA] {e}")
         await ctx.send("Bir hata oluştu.")
 
-
-
+# Komut: !vip
 @bot.command()
 async def vip(ctx):
     embed = discord.Embed(
@@ -155,6 +139,7 @@ async def vip(ctx):
     )
     await ctx.send(embed=embed)
 
+# Komut: !yardim
 @bot.command()
 async def yardim(ctx):
     embed = discord.Embed(
@@ -171,6 +156,7 @@ async def yardim(ctx):
     embed.add_field(name="!link", value="Sunucu davet bağlantısını gönderir", inline=False)
     await ctx.send(embed=embed)
 
+# Komut: !kurallar
 @bot.command()
 async def kurallar(ctx):
     embed = discord.Embed(
@@ -193,6 +179,7 @@ async def kurallar(ctx):
     )
     await ctx.send(embed=embed)
 
+# Komut: !bf1
 @bot.command()
 async def bf1(ctx):
     embed = discord.Embed(
@@ -208,12 +195,11 @@ async def bf1(ctx):
     )
     await ctx.send(embed=embed)
 
+# Komut: !link
 @bot.command()
 async def link(ctx):
     await ctx.send("🔗 Sunucumuza katılmak için: https://discord.gg/TURKBF1")
 
-# BOT NESNESİNİ EXPORT ET (main.py'de import için)
-__all__ = ["bot"]
-
+# Botu çalıştır
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
